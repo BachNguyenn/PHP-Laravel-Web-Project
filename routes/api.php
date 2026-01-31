@@ -19,8 +19,7 @@ use App\Http\Controllers\Api\SettingController;
 */
 
 // Public routes
-Route::post('/login', [AuthController::class, 'login'])
-    ->middleware('throttle:5,1'); // 5 attempts per minute
+Route::post('/login', [AuthController::class, 'login']);
 
 // Protected routes (require authentication)
 Route::middleware('auth:sanctum')->group(function () {

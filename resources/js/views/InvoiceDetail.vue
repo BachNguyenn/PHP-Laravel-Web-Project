@@ -5,12 +5,21 @@
             <div class="container-fluid">
                 <div class="row mb-2">
                     <div class="col-sm-6">
-                        <h1 class="m-0">Invoice Detail</h1>
+                        <h1 class="m-0">
+                            <i class="fas fa-file-invoice me-2 text-primary"></i>
+                            Invoice Detail
+                        </h1>
                     </div>
                     <div class="col-sm-6">
                         <ol class="breadcrumb float-sm-end">
-                            <li class="breadcrumb-item"><router-link to="/dashboard">Home</router-link></li>
-                            <li class="breadcrumb-item"><router-link to="/invoices">Invoices</router-link></li>
+                            <li class="breadcrumb-item">
+                                <router-link to="/dashboard">
+                                    <i class="fas fa-home"></i> Home
+                                </router-link>
+                            </li>
+                            <li class="breadcrumb-item">
+                                <router-link to="/invoices">Invoices</router-link>
+                            </li>
                             <li class="breadcrumb-item active">Detail</li>
                         </ol>
                     </div>
@@ -22,120 +31,186 @@
         <section class="content">
             <div class="container-fluid">
                 <div class="row justify-content-center">
-                    <div class="col-md-8">
+                    <div class="col-lg-8">
                         <!-- Action buttons -->
-                        <div class="mb-3 d-flex gap-2">
-                            <router-link to="/invoices" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left me-2"></i>Back to List
-                            </router-link>
-                            <button class="btn btn-primary" @click="printInvoice">
-                                <i class="fas fa-print me-2"></i>Print
-                            </button>
-                            <button class="btn btn-success" @click="downloadPDF" :disabled="downloading">
-                                <span v-if="downloading">
-                                    <i class="fas fa-spinner fa-spin me-2"></i>Generating...
-                                </span>
-                                <span v-else>
-                                    <i class="fas fa-file-pdf me-2"></i>Download PDF
-                                </span>
-                            </button>
+                        <div class="mb-3 no-print">
+                            <div class="btn-group">
+                                <router-link to="/invoices" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Back to List
+                                </router-link>
+                                <button class="btn btn-primary" @click="printInvoice">
+                                    <i class="fas fa-print me-2"></i>Print
+                                </button>
+                                <button class="btn btn-danger" @click="downloadPDF" :disabled="downloading">
+                                    <span v-if="downloading">
+                                        <i class="fas fa-spinner fa-spin me-2"></i>Generating...
+                                    </span>
+                                    <span v-else>
+                                        <i class="fas fa-file-pdf me-2"></i>Download PDF
+                                    </span>
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Loading -->
                         <div v-if="loading" class="text-center py-5">
-                            <i class="fas fa-spinner fa-spin fa-3x"></i>
+                            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-3 text-muted">Loading invoice...</p>
                         </div>
 
                         <!-- Invoice Template -->
-                        <div v-else class="card" id="invoice-template" ref="invoiceRef">
+                        <div v-else class="card invoice-card" id="invoice-template" ref="invoiceRef">
                             <div class="card-body p-4">
-                                <!-- Header -->
-                                <div class="row mb-4">
-                                    <div class="col-6">
-                                        <img v-if="settings.gym_logo" :src="settings.gym_logo" alt="Logo" style="max-height: 80px;" />
-                                        <h2 v-else class="text-primary mb-0">
-                                            <i class="fas fa-dumbbell me-2"></i>{{ settings.gym_name || 'GYM Manager' }}
-                                        </h2>
+                                <!-- Invoice Header -->
+                                <div class="invoice-header d-flex justify-content-between align-items-start mb-4">
+                                    <div class="company-info">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <div class="logo-circle bg-primary me-3">
+                                                <i class="fas fa-dumbbell text-white"></i>
+                                            </div>
+                                            <div>
+                                                <h3 class="mb-0 text-primary">{{ settings.gym_name || 'GYM Manager' }}</h3>
+                                                <small class="text-muted">Fitness Center</small>
+                                            </div>
+                                        </div>
+                                        <p class="mb-0 text-muted small" v-if="settings.gym_address">
+                                            <i class="fas fa-map-marker-alt me-1"></i>{{ settings.gym_address }}
+                                        </p>
+                                        <p class="mb-0 text-muted small" v-if="settings.gym_phone">
+                                            <i class="fas fa-phone me-1"></i>{{ settings.gym_phone }}
+                                        </p>
+                                        <p class="mb-0 text-muted small" v-if="settings.gym_email">
+                                            <i class="fas fa-envelope me-1"></i>{{ settings.gym_email }}
+                                        </p>
                                     </div>
-                                    <div class="col-6 text-end">
-                                        <h4 class="text-muted">INVOICE</h4>
-                                        <p class="mb-0"><strong>{{ invoice.invoice_id }}</strong></p>
-                                        <p class="mb-0">Date: {{ formatDate(invoice.created_at) }}</p>
+                                    <div class="invoice-info text-end">
+                                        <h2 class="text-uppercase mb-2" style="letter-spacing: 2px;">
+                                            <span class="badge bg-dark fs-4">INVOICE</span>
+                                        </h2>
+                                        <p class="mb-1">
+                                            <strong class="text-primary">{{ invoice.invoice_id }}</strong>
+                                        </p>
+                                        <p class="mb-0 text-muted small">
+                                            <i class="fas fa-calendar me-1"></i>{{ formatDate(invoice.created_at) }}
+                                        </p>
                                     </div>
                                 </div>
 
-                                <!-- Gym Info -->
+                                <hr class="my-4">
+
+                                <!-- Bill To Section -->
                                 <div class="row mb-4">
-                                    <div class="col-6">
-                                        <h6 class="text-muted">From:</h6>
-                                        <p class="mb-0"><strong>{{ settings.gym_name || 'GYM Manager' }}</strong></p>
-                                        <p class="mb-0" v-if="settings.gym_address">{{ settings.gym_address }}</p>
-                                        <p class="mb-0" v-if="settings.gym_phone">Phone: {{ settings.gym_phone }}</p>
-                                        <p class="mb-0" v-if="settings.gym_email">Email: {{ settings.gym_email }}</p>
+                                    <div class="col-md-6">
+                                        <div class="bill-to-card p-3 bg-light rounded">
+                                            <h6 class="text-uppercase text-muted mb-3">
+                                                <i class="fas fa-user me-2"></i>Bill To
+                                            </h6>
+                                            <h5 class="mb-2">{{ invoice.member?.name || '-' }}</h5>
+                                            <p class="mb-1 text-muted">
+                                                <i class="fas fa-id-card me-1"></i>
+                                                Member ID: <strong>{{ invoice.member?.member_id }}</strong>
+                                            </p>
+                                            <p class="mb-1 text-muted" v-if="invoice.member?.mobile">
+                                                <i class="fas fa-phone me-1"></i>{{ invoice.member?.mobile }}
+                                            </p>
+                                            <p class="mb-0 text-muted" v-if="invoice.member?.address">
+                                                <i class="fas fa-map-marker-alt me-1"></i>{{ invoice.member?.address }}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div class="col-6">
-                                        <h6 class="text-muted">Bill To:</h6>
-                                        <p class="mb-0"><strong>{{ invoice.member?.name || '-' }}</strong></p>
-                                        <p class="mb-0">Member ID: {{ invoice.member?.member_id }}</p>
-                                        <p class="mb-0" v-if="invoice.member?.mobile">Phone: {{ invoice.member?.mobile }}</p>
-                                        <p class="mb-0" v-if="invoice.member?.address">{{ invoice.member?.address }}</p>
+                                    <div class="col-md-6">
+                                        <div class="payment-info-card p-3 bg-light rounded">
+                                            <h6 class="text-uppercase text-muted mb-3">
+                                                <i class="fas fa-credit-card me-2"></i>Payment Details
+                                            </h6>
+                                            <p class="mb-2">
+                                                <span class="text-muted">Method:</span>
+                                                <span class="badge ms-2" :class="invoice.payment_type === 'cash' ? 'bg-success' : 'bg-info'">
+                                                    <i :class="invoice.payment_type === 'cash' ? 'fas fa-money-bill' : 'fas fa-university'" class="me-1"></i>
+                                                    {{ invoice.payment_type === 'cash' ? 'Tiền mặt' : 'Chuyển khoản' }}
+                                                </span>
+                                            </p>
+                                            <p class="mb-2">
+                                                <span class="text-muted">Status:</span>
+                                                <span class="badge bg-success ms-2">
+                                                    <i class="fas fa-check-circle me-1"></i>PAID
+                                                </span>
+                                            </p>
+                                            <p class="mb-0">
+                                                <span class="text-muted">Period:</span>
+                                                <br>
+                                                <small>{{ formatDate(invoice.start_date) }} - {{ formatDate(invoice.end_date) }}</small>
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
 
                                 <!-- Invoice Details Table -->
-                                <table class="table table-bordered">
-                                    <thead class="table-dark">
-                                        <tr>
-                                            <th>Description</th>
-                                            <th>Period</th>
-                                            <th class="text-end">Amount</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>Gym Membership Package</td>
-                                            <td>{{ formatDate(invoice.start_date) }} - {{ formatDate(invoice.end_date) }}</td>
-                                            <td class="text-end">{{ formatCurrency(invoice.amount) }}</td>
-                                        </tr>
-                                    </tbody>
-                                    <tfoot>
-                                        <tr class="table-light">
-                                            <td colspan="2" class="text-end"><strong>Total:</strong></td>
-                                            <td class="text-end"><strong>{{ formatCurrency(invoice.amount) }}</strong></td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-
-                                <!-- Payment Info -->
-                                <div class="row mt-4">
-                                    <div class="col-6">
-                                        <h6>Payment Method:</h6>
-                                        <p>
-                                            <span class="badge" :class="invoice.payment_type === 'cash' ? 'bg-success' : 'bg-info'">
-                                                {{ invoice.payment_type === 'cash' ? 'Tiền mặt' : 'Chuyển khoản' }}
-                                            </span>
-                                        </p>
-                                    </div>
-                                    <div class="col-6 text-end">
-                                        <h6>Status:</h6>
-                                        <span class="badge bg-success fs-6">PAID</span>
-                                    </div>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered mb-0">
+                                        <thead class="table-primary">
+                                            <tr>
+                                                <th style="width: 50px;">#</th>
+                                                <th>Description</th>
+                                                <th>Period</th>
+                                                <th class="text-end" style="width: 150px;">Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="text-center">1</td>
+                                                <td>
+                                                    <i class="fas fa-dumbbell me-2 text-primary"></i>
+                                                    <strong>Gym Membership Package</strong>
+                                                </td>
+                                                <td>{{ formatDate(invoice.start_date) }} - {{ formatDate(invoice.end_date) }}</td>
+                                                <td class="text-end fw-bold">{{ formatCurrency(invoice.amount) }}</td>
+                                            </tr>
+                                        </tbody>
+                                        <tfoot>
+                                            <tr class="table-light">
+                                                <td colspan="3" class="text-end"><strong>Subtotal:</strong></td>
+                                                <td class="text-end">{{ formatCurrency(invoice.amount) }}</td>
+                                            </tr>
+                                            <tr class="table-light">
+                                                <td colspan="3" class="text-end"><strong>Tax (0%):</strong></td>
+                                                <td class="text-end">{{ formatCurrency(0) }}</td>
+                                            </tr>
+                                            <tr class="table-success">
+                                                <td colspan="3" class="text-end"><strong class="fs-5">Total:</strong></td>
+                                                <td class="text-end"><strong class="fs-5 text-success">{{ formatCurrency(invoice.amount) }}</strong></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
                                 </div>
 
                                 <!-- Note -->
-                                <div v-if="invoice.note" class="mt-4 p-3 bg-light rounded">
-                                    <h6>Note:</h6>
-                                    <p class="mb-0">{{ invoice.note }}</p>
+                                <div v-if="invoice.note" class="mt-4 p-3 bg-warning bg-opacity-10 border-start border-warning border-3 rounded">
+                                    <h6 class="mb-2">
+                                        <i class="fas fa-sticky-note me-2 text-warning"></i>Note
+                                    </h6>
+                                    <p class="mb-0 text-muted">{{ invoice.note }}</p>
                                 </div>
 
                                 <!-- Footer -->
-                                <div class="mt-5 pt-4 border-top text-center text-muted">
-                                    <p class="mb-1">Thank you for your membership!</p>
-                                    <small v-if="settings.facebook_url || settings.youtube_url">
-                                        <span v-if="settings.facebook_url">Facebook: {{ settings.facebook_url }}</span>
-                                        <span v-if="settings.facebook_url && settings.youtube_url"> | </span>
-                                        <span v-if="settings.youtube_url">Youtube: {{ settings.youtube_url }}</span>
-                                    </small>
+                                <div class="mt-5 pt-4 border-top text-center">
+                                    <div class="mb-3">
+                                        <i class="fas fa-heart text-danger"></i>
+                                        <span class="text-muted ms-2">Thank you for your membership!</span>
+                                    </div>
+                                    <div class="social-links" v-if="settings.facebook_url || settings.youtube_url">
+                                        <a v-if="settings.facebook_url" :href="settings.facebook_url" class="btn btn-outline-primary btn-sm me-2" target="_blank">
+                                            <i class="fab fa-facebook me-1"></i>Facebook
+                                        </a>
+                                        <a v-if="settings.youtube_url" :href="settings.youtube_url" class="btn btn-outline-danger btn-sm" target="_blank">
+                                            <i class="fab fa-youtube me-1"></i>Youtube
+                                        </a>
+                                    </div>
+                                    <p class="text-muted small mt-3 mb-0">
+                                        {{ settings.gym_name || 'GYM Manager' }} &copy; {{ new Date().getFullYear() }}
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -150,8 +225,6 @@
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useToast } from 'vue-toastification';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 import api from '@/utils/axios';
 
 export default {
@@ -185,9 +258,10 @@ export default {
         };
 
         const formatCurrency = (amount) => {
-            return new Intl.NumberFormat('vi-VN', { 
-                style: 'currency', 
-                currency: 'VND' 
+            return new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND',
+                maximumFractionDigits: 0,
             }).format(amount || 0);
         };
 
@@ -198,6 +272,10 @@ export default {
         const downloadPDF = async () => {
             downloading.value = true;
             try {
+                // Dynamic import for PDF libraries
+                const html2canvas = (await import('html2canvas')).default;
+                const jsPDF = (await import('jspdf')).default;
+
                 const element = invoiceRef.value;
                 const canvas = await html2canvas(element, {
                     scale: 2,
@@ -207,17 +285,17 @@ export default {
 
                 const imgData = canvas.toDataURL('image/png');
                 const pdf = new jsPDF('p', 'mm', 'a4');
-                
+
                 const pdfWidth = pdf.internal.pageSize.getWidth();
                 const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-                
+
                 pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
                 pdf.save(`${invoice.value.invoice_id}.pdf`);
-                
+
                 toast.success('PDF downloaded successfully');
             } catch (error) {
                 console.error('PDF generation error:', error);
-                toast.error('Failed to generate PDF');
+                toast.error('Failed to generate PDF. Please install html2canvas and jspdf packages.');
             } finally {
                 downloading.value = false;
             }
@@ -228,23 +306,63 @@ export default {
         });
 
         return {
-            invoice, settings, loading, downloading, invoiceRef,
-            formatDate, formatCurrency, printInvoice, downloadPDF,
+            invoice,
+            settings,
+            loading,
+            downloading,
+            invoiceRef,
+            formatDate,
+            formatCurrency,
+            printInvoice,
+            downloadPDF,
         };
     },
 };
 </script>
 
 <style scoped>
+.invoice-card {
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    border-radius: 1rem;
+}
+
+.logo-circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.bill-to-card,
+.payment-info-card {
+    height: 100%;
+}
+
+.table th {
+    font-weight: 600;
+}
+
 @media print {
+    .no-print,
     .content-header,
-    .btn,
     .breadcrumb {
         display: none !important;
     }
-    .card {
+
+    .invoice-card {
         border: none !important;
         box-shadow: none !important;
+    }
+
+    .container-fluid {
+        max-width: 100% !important;
+    }
+
+    body {
+        background: white !important;
     }
 }
 </style>
